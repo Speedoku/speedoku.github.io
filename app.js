@@ -457,6 +457,16 @@ function _registerAppHandlers() {
   });
 
   WS.on("error", msg => {
+    // Stale/invalid token — clear silently and fall back to guest
+    if (msg.message === "Invalid token") {
+      Auth.user = null;
+      Auth.token = null;
+      Auth.isGuest = true;
+      localStorage.removeItem("speedoku_token");
+      localStorage.removeItem("speedoku_user");
+      App.updateHeaderUser();
+      return;
+    }
     // Only show toasts if not in auth view (auth.js handles those)
     const active = document.querySelector(".view.active");
     if (!active || active.id !== "view-auth") {
