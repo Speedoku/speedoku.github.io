@@ -1209,15 +1209,13 @@ html, body {
   .profile-hero { gap: 6px; }
   .diff-pick-row { flex-direction: column; }
   .post-game-actions { flex-direction: column; width: 100%; }
-  .num-btn { width: 36px; height: 36px; font-size: 16px; }
   .browser-body { padding: 20px 16px 32px; gap: 24px; }
   .home-center { padding: 48px 24px; gap: 18px; }
+  .opponent-mini-board { width: 76px; height: 76px; }
 }
 
 @media (max-width: 400px) {
   .auth-card { padding: 28px 20px; }
-  .numpad-row { gap: 4px; }
-  .num-btn { width: 32px; height: 32px; font-size: 14px; }
 }
 
 /* ─── Solo Mode ──────────────────────────────────────────────────────────── */
@@ -1348,13 +1346,60 @@ html, body {
 @media (max-width: 600px) {
   .solo-game-area {
     flex-direction: column;
-    gap: 16px;
-    padding: 12px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    overflow-y: auto;
   }
+  #view-solo { overflow-y: auto; }
   .solo-complete-card {
     padding: 28px 24px;
     margin: 0 16px;
   }
+
+  /* ── Solo board constrained so T9 fits without scrolling ── */
+  .solo-game-area .sudoku-board {
+    width: min(calc(100vw - 32px), calc(100dvh - 330px));
+  }
+
+  /* ── T9 numpad – solo ───────────────────── */
+  #solo-numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    width: min(320px, calc(100vw - 32px));
+  }
+  #solo-numpad .erase-btn { grid-column: 1; }
+  #solo-numpad .notes-btn { grid-column: 3; }
+
+  /* ── T9 numpad – race / versus ──────────── */
+  .numpad-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    padding: 10px 12px 16px;
+    border-top: 1px solid var(--line);
+  }
+  .numpad-row .numpad { display: contents; }
+  .numpad-row .erase-btn { grid-column: 1; }
+  .numpad-row .notes-btn { grid-column: 3; }
+
+  /* ── Button sizing ──────────────────────── */
+  .num-btn {
+    width: 100%;
+    height: 48px;
+    font-size: 20px;
+    border-radius: var(--r);
+  }
+  .erase-btn { font-size: 22px; }
+  .notes-btn { font-size: 18px; }
+
+  /* ── Journey dots ───────────────────────── */
+  .journey-dot {
+    width: 26px;
+    height: 26px;
+  }
+  .journey-dots { gap: 9px; }
 }
 
 /* ─── Leaderboard ────────────────────────────────────────────────────────── */
