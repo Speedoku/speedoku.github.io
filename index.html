@@ -195,29 +195,41 @@
 
       <!-- Step 1: mode cards -->
       <div id="browser-step-1" class="browser-step">
-        <div class="section-label">Quick Play</div>
-        <div class="mode-cards">
-          <button class="mode-card" id="btn-journey">
-            <div class="mode-card-title">Journey</div>
-            <div class="mode-card-desc">500 puzzles · your own pace · track your progress</div>
-          </button>
-          <button class="mode-card" id="btn-solo">
-            <div class="mode-card-title">Solo</div>
-            <div class="mode-card-desc">Random puzzle · no opponents · optional timer</div>
-          </button>
-          <button class="mode-card" id="btn-quick-match">
-            <div class="mode-card-title">Ranked</div>
-            <div class="mode-card-desc">Compete for ELO · matched by skill level</div>
-          </button>
-          <button class="mode-card" id="btn-quick-casual">
-            <div class="mode-card-title">Casual</div>
-            <div class="mode-card-desc">Play for fun · no ranking on the line</div>
-          </button>
-          <button class="mode-card" id="btn-create-room">
-            <div class="mode-card-title">Create Room</div>
-            <div class="mode-card-desc">Private lobby · 2–8 players · custom rules</div>
-          </button>
+
+        <!-- Single Player -->
+        <div class="mode-group">
+          <div class="mode-group-label">Single Player</div>
+          <div class="mode-cards mode-cards-2">
+            <button class="mode-card" id="btn-journey">
+              <div class="mode-card-title">Journey</div>
+              <div class="mode-card-desc">500 puzzles · your own pace · track your progress</div>
+            </button>
+            <button class="mode-card" id="btn-solo">
+              <div class="mode-card-title">Solo</div>
+              <div class="mode-card-desc">Random puzzle · no opponents · optional timer</div>
+            </button>
+          </div>
         </div>
+
+        <!-- Multiplayer -->
+        <div class="mode-group">
+          <div class="mode-group-label">Multiplayer</div>
+          <div class="mode-cards">
+            <button class="mode-card" id="btn-quick-match">
+              <div class="mode-card-title">Ranked</div>
+              <div class="mode-card-desc">Compete for ELO · matched by skill level</div>
+            </button>
+            <button class="mode-card" id="btn-quick-casual">
+              <div class="mode-card-title">Casual</div>
+              <div class="mode-card-desc">Play for fun · no ranking on the line</div>
+            </button>
+            <button class="mode-card" id="btn-create-room">
+              <div class="mode-card-title">Create Room</div>
+              <div class="mode-card-desc">Private lobby · 2–8 players · custom rules</div>
+            </button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Step 2: difficulty picker (shown after clicking Ranked/Casual/Solo) -->
