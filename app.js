@@ -32,6 +32,23 @@ const App = {
     const token = Auth.token;
     WS.connect(token);
 
+    // Direct profile URL: /username injected by Cloudflare Worker
+    const profileUsername = window.__SPEEDOKU_PROFILE__;
+    if (profileUsername) {
+      // Show home/lobby first, then open profile once WS is ready
+      const storedUser = localStorage.getItem("speedoku_user");
+      if (storedUser) {
+        try { Auth.user = JSON.parse(storedUser); Auth.isGuest = false; } catch {}
+      }
+      this.showView("lobby-browser");
+      this.updateHeaderUser();
+      const unsub = WS.on("_connected", () => {
+        WS.send({ type: "get_profile", username: profileUsername });
+        unsub();
+      });
+      return;
+    }
+
     // Try to restore session from localStorage
     const storedUser = localStorage.getItem("speedoku_user");
     if (storedUser) {
