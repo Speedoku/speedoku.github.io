@@ -755,16 +755,84 @@ function _renderPostGame(msg) {
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
 function _renderProfile(profile) {
+  const fmt = secs => secs > 0
+    ? `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, "0")}`
+    : "—";
+
+  // ── Hero ──────────────────────────────────────────────────────────────────
   document.getElementById("profile-username").textContent = profile.username;
   document.getElementById("profile-elo").textContent = profile.elo;
   document.getElementById("profile-tier").textContent = profile.tier;
+  const bestElo = profile.best_elo || profile.elo;
+  document.getElementById("profile-peak-elo").textContent =
+    bestElo > profile.elo ? `Peak: ${bestElo}` : "";
+
+  // ── Badges ────────────────────────────────────────────────────────────────
+  const badgesEl = document.getElementById("profile-badges");
+  badgesEl.innerHTML = "";
+  const badges = profile.badges || [];
+  if (badges.length === 0) {
+    badgesEl.innerHTML = '<span class="no-badges">No badges yet — get out there!</span>';
+  } else {
+    badges.forEach(b => {
+      const el = document.createElement("span");
+      el.className = `badge tier-${b.tier}`;
+      el.innerHTML = `<span class="badge-icon">${b.icon}</span>${_escapeHtml(b.label)}`;
+      badgesEl.appendChild(el);
+    });
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
   document.getElementById("stat-games").textContent = profile.games_played;
   document.getElementById("stat-wins").textContent = profile.wins;
-  document.getElementById("stat-winrate").textContent = (profile.win_rate * 100).toFixed(1) + "%";
-  const avg = profile.avg_time_seconds;
-  document.getElementById("stat-avgtime").textContent =
-    avg > 0 ? `${Math.floor(avg / 60)}:${String(Math.floor(avg % 60)).padStart(2, "0")}` : "—";
+  document.getElementById("stat-losses").textContent = profile.losses ?? "—";
+  document.getElementById("stat-winrate").textContent =
+    profile.games_played > 0 ? (profile.win_rate * 100).toFixed(1) + "%" : "—";
+  document.getElementById("stat-streak").textContent = profile.best_win_streak || 0;
+  document.getElementById("stat-avgtime").textContent = fmt(profile.avg_time_seconds);
 
+  // ── Journey Progress ──────────────────────────────────────────────────────
+  const journeyBars = document.getElementById("journey-profile-bars");
+  journeyBars.innerHTML = "";
+  const totals = profile.journey_totals || {};
+  const jStats = profile.journey_stats || {};
+  let anyJourney = false;
+  [["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]].forEach(([diff, label]) => {
+    const done  = jStats[diff] || 0;
+    const total = totals[diff] || 0;
+    if (total === 0) return;
+    anyJourney = true;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const row = document.createElement("div");
+    row.className = "journey-bar-row";
+    row.innerHTML = `
+      <span class="journey-bar-label diff-${diff}">${label}</span>
+      <div class="journey-bar-track">
+        <div class="journey-bar-fill diff-${diff}" style="width:${pct}%"></div>
+      </div>
+      <span class="journey-bar-count">${done} / ${total}</span>
+    `;
+    journeyBars.appendChild(row);
+  });
+  document.getElementById("section-journey").style.display = anyJourney ? "" : "none";
+
+  // ── Speed Records ─────────────────────────────────────────────────────────
+  const speedEl = document.getElementById("speed-records");
+  speedEl.innerHTML = "";
+  [["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]].forEach(([diff, label]) => {
+    const t = profile[`fastest_${diff}`];
+    const block = document.createElement("div");
+    block.className = "speed-record-block";
+    block.innerHTML = `
+      <div class="speed-record-value">${fmt(t)}</div>
+      <div class="speed-record-label">${label}</div>
+    `;
+    speedEl.appendChild(block);
+  });
+  const hasSpeed = profile.fastest_easy || profile.fastest_medium || profile.fastest_hard;
+  document.getElementById("section-speed").style.display = hasSpeed ? "" : "none";
+
+  // ── Recent Games ──────────────────────────────────────────────────────────
   const recentList = document.getElementById("recent-games-list");
   recentList.innerHTML = "";
   (profile.recent_games || []).forEach(g => {
@@ -774,8 +842,8 @@ function _renderProfile(profile) {
     const sign = delta >= 0 ? "+" : "";
     row.innerHTML = `
       <span class="rgr-result ${g.result === "win" ? "win" : "loss"}">${g.result.toUpperCase()}</span>
-      <span>${g.difficulty || "—"}</span>
-      <span>${g.mode || "—"}</span>
+      <span>${_escapeHtml(g.difficulty || "—")}</span>
+      <span>${_escapeHtml(g.mode || "—")}</span>
       <span class="rgr-delta ${delta >= 0 ? "pos" : "neg"}">${sign}${delta} ELO</span>
     `;
     recentList.appendChild(row);

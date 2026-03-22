@@ -388,33 +388,74 @@
     <button class="btn btn-link" id="btn-profile-back">← Back</button>
   </header>
   <div class="profile-body">
-    <div class="profile-header">
+
+    <!-- Hero -->
+    <div class="profile-hero">
       <div class="profile-username" id="profile-username"></div>
-      <div class="profile-elo">
+      <div class="profile-elo-row">
         <span id="profile-elo" class="elo-number"></span>
-        <span id="profile-tier" class="elo-tier"></span>
+        <span id="profile-tier" class="elo-tier-badge"></span>
+      </div>
+      <div class="profile-peak-elo" id="profile-peak-elo"></div>
+    </div>
+
+    <!-- Badges -->
+    <div class="profile-section" id="section-badges">
+      <div class="profile-section-title">Badges</div>
+      <div id="profile-badges" class="badges-row">
+        <span class="no-badges">No badges yet — get out there!</span>
       </div>
     </div>
-    <div class="stats-grid">
-      <div class="stat-block">
-        <div class="stat-value" id="stat-games">—</div>
-        <div class="stat-label">Games Played</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-value" id="stat-wins">—</div>
-        <div class="stat-label">Wins</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-value" id="stat-winrate">—</div>
-        <div class="stat-label">Win Rate</div>
-      </div>
-      <div class="stat-block">
-        <div class="stat-value" id="stat-avgtime">—</div>
-        <div class="stat-label">Avg Time</div>
+
+    <!-- Stats -->
+    <div class="profile-section">
+      <div class="profile-section-title">Stats</div>
+      <div class="stats-grid">
+        <div class="stat-block">
+          <div class="stat-value" id="stat-games">—</div>
+          <div class="stat-label">Games</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value" id="stat-wins">—</div>
+          <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value" id="stat-losses">—</div>
+          <div class="stat-label">Losses</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value" id="stat-winrate">—</div>
+          <div class="stat-label">Win Rate</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value" id="stat-streak">—</div>
+          <div class="stat-label">Best Streak</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-value" id="stat-avgtime">—</div>
+          <div class="stat-label">Avg Time</div>
+        </div>
       </div>
     </div>
-    <div class="recent-games-title">Recent Games</div>
-    <div id="recent-games-list" class="recent-games-list"></div>
+
+    <!-- Journey Progress -->
+    <div class="profile-section" id="section-journey">
+      <div class="profile-section-title">Journey</div>
+      <div class="journey-profile-bars" id="journey-profile-bars"></div>
+    </div>
+
+    <!-- Speed Records -->
+    <div class="profile-section" id="section-speed">
+      <div class="profile-section-title">Speed Records</div>
+      <div class="speed-records" id="speed-records"></div>
+    </div>
+
+    <!-- Recent Games -->
+    <div class="profile-section">
+      <div class="profile-section-title">Recent Games</div>
+      <div id="recent-games-list" class="recent-games-list"></div>
+    </div>
+
   </div>
 </div>
 

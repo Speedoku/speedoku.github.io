@@ -938,6 +938,7 @@ html, body {
 /* ─── Profile ─────────────────────────────────────────────────────────────── */
 .profile-body {
   flex: 1;
+  overflow-y: auto;
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
@@ -946,23 +947,116 @@ html, body {
   flex-direction: column;
   gap: 24px;
 }
-.profile-header { display: flex; align-items: flex-end; gap: 20px; }
+/* Hero */
+.profile-hero { display: flex; flex-direction: column; gap: 4px; }
 .profile-username { font-family: var(--font-ui); font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
-.profile-elo { display: flex; gap: 8px; align-items: baseline; margin-bottom: 4px; }
-/* ELO is a number, prominent by size — no amber needed */
-.elo-number { font-family: var(--font-mono); font-size: 20px; color: var(--text); }
-.elo-tier   { font-size: 12px; color: var(--text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.profile-elo-row { display: flex; gap: 10px; align-items: center; }
+.elo-number { font-family: var(--font-mono); font-size: 22px; color: var(--text); }
+.elo-tier-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.profile-peak-elo { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* Section wrapper */
+.profile-section { display: flex; flex-direction: column; gap: 10px; }
+.profile-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Badges */
+.badges-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.no-badges { font-size: 12px; color: var(--text-muted); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.badge-icon { font-size: 13px; line-height: 1; }
+.badge.tier-silver { border-color: rgba(192,192,192,0.35); color: #c0c0c0; }
+.badge.tier-gold   { border-color: rgba(255,185,60,0.4); color: var(--accent); background: rgba(255,185,60,0.07); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .stat-block {
   background: var(--bg-1);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
-  padding: 18px 12px;
+  padding: 16px 12px;
   text-align: center;
 }
-/* Stats: prominent by size — no amber needed */
-.stat-value { font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text); }
-.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.stat-value { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--text); }
+.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+/* Journey progress bars */
+.journey-profile-bars { display: flex; flex-direction: column; gap: 10px; }
+.journey-bar-row { display: flex; align-items: center; gap: 10px; }
+.journey-bar-label {
+  width: 52px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.journey-bar-label.diff-easy   { color: #4ade80; }
+.journey-bar-label.diff-medium { color: var(--accent); }
+.journey-bar-label.diff-hard   { color: #f87171; }
+.journey-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.journey-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+  background: var(--text-dim);
+}
+.journey-bar-fill.diff-easy   { background: #4ade80; }
+.journey-bar-fill.diff-medium { background: var(--accent); }
+.journey-bar-fill.diff-hard   { background: #f87171; }
+.journey-bar-count {
+  width: 70px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  flex-shrink: 0;
+}
+
+/* Speed records */
+.speed-records { display: flex; gap: 8px; }
+.speed-record-block {
+  flex: 1;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 14px 12px;
+  text-align: center;
+}
+.speed-record-value { font-family: var(--font-mono); font-size: 18px; color: var(--text); }
+.speed-record-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
 .recent-games-title { font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
 .recent-games-list { display: flex; flex-direction: column; gap: 4px; }
 .recent-game-row {
@@ -1099,7 +1193,8 @@ html, body {
   .sudoku-board { width: min(calc(100vw - 24px), 400px); }
   .opponents-section { width: 100%; justify-content: center; overflow-y: visible; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .profile-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .speed-records { flex-direction: column; }
+  .profile-hero { gap: 6px; }
   .diff-pick-row { flex-direction: column; }
   .post-game-actions { flex-direction: column; width: 100%; }
   .num-btn { width: 36px; height: 36px; font-size: 16px; }
