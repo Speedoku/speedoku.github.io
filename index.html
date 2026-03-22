@@ -182,6 +182,7 @@
     </div>
     <div class="header-actions">
       <span id="header-username" class="header-user"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-leaderboard">Leaderboard</button>
       <button class="btn btn-ghost btn-sm" id="btn-profile">Profile</button>
       <button class="btn btn-ghost btn-sm" id="btn-logout">Sign Out</button>
     </div>
@@ -375,6 +376,32 @@
     <div class="post-game-actions">
       <button class="btn btn-primary" id="btn-play-again">Play Again</button>
       <button class="btn btn-ghost" id="btn-back-lobby">Back to Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaderboard -->
+<div id="view-leaderboard" class="view">
+  <header class="view-header">
+    <div class="logo-small"><img src="logo.png" alt="Speedoku" class="logo-img-sm"></div>
+    <button class="btn btn-link" id="btn-leaderboard-back">← Back</button>
+  </header>
+  <div class="leaderboard-body">
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-tab="ranked">Ranked</button>
+      <button class="lb-tab" data-tab="speed">Speed</button>
+    </div>
+
+    <!-- Ranked panel -->
+    <div id="lb-panel-ranked" class="lb-panel">
+      <div class="lb-meta">Top 50 · minimum 5 games played</div>
+      <div id="lb-ranked-list" class="lb-list"></div>
+    </div>
+
+    <!-- Speed panel -->
+    <div id="lb-panel-speed" class="lb-panel hidden">
+      <div class="lb-meta">Fastest solo or journey solve per difficulty</div>
+      <div class="lb-speed-grid" id="lb-speed-grid"></div>
     </div>
   </div>
 </div>

@@ -15,6 +15,7 @@ const App = {
   _lastRoomList: [],
   _soloSettings: { difficulty: 'easy' },
   _soloReturnView: null,     // where "Back" / "Done" goes after solo/journey puzzle
+  _profileReturnView: null,  // where profile "← Back" returns to
   _journeyState: {           // runtime journey state
     counts: { easy: 0, medium: 0, hard: 0 },
     nextDifficulty: null,
@@ -317,6 +318,13 @@ function _bindNavigation() {
     if (e.key === "Enter") _joinByCode();
   });
 
+  document.getElementById("btn-leaderboard").addEventListener("click", () => {
+    WS.send({ type: "get_leaderboard" });
+  });
+  document.getElementById("btn-leaderboard-back").addEventListener("click", () => {
+    App.showView("lobby-browser");
+  });
+
   document.getElementById("btn-profile").addEventListener("click", () => {
     if (!Auth.user) return;
     WS.send({ type: "get_profile", user_id: Auth.user.id });
@@ -381,7 +389,8 @@ function _bindNavigation() {
 
   // Profile
   document.getElementById("btn-profile-back").addEventListener("click", () => {
-    App.showView("lobby-browser");
+    App.showView(App._profileReturnView || "lobby-browser");
+    App._profileReturnView = null;
   });
 
   // Public lobby difficulty tabs
@@ -562,6 +571,11 @@ function _registerAppHandlers() {
     App.showView("profile");
   });
 
+  // Track where profile "← Back" should return to
+  document.getElementById("btn-profile").addEventListener("click", () => {
+    App._profileReturnView = "lobby-browser";
+  }, true);
+
   WS.on("solo_puzzle", msg => {
     Game.startSolo(msg.puzzle, msg.solution, msg.given_cells, msg.difficulty, msg.puzzle_id);
   });
@@ -570,6 +584,12 @@ function _registerAppHandlers() {
     if (msg.new_best) {
       document.getElementById("solo-complete-pb").classList.remove("hidden");
     }
+  });
+
+  WS.on("leaderboard", msg => {
+    _renderLeaderboard(msg);
+    App._profileReturnView = "leaderboard";
+    App.showView("leaderboard");
   });
 
   WS.on("journey_info", msg => {
@@ -934,6 +954,77 @@ function _escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   })[c]);
+}
+
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
+
+function _renderLeaderboard(data) {
+  const myId = Auth.user ? Auth.user.id : null;
+  const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  const rankClass = i => i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+
+  // ── Tab switching ───────────────────────────────────────────────────────
+  document.querySelectorAll(".lb-tab").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".lb-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("lb-panel-ranked").classList.toggle("hidden", tab !== "ranked");
+      document.getElementById("lb-panel-speed").classList.toggle("hidden", tab !== "speed");
+    };
+  });
+  // Reset to ranked tab
+  document.querySelectorAll(".lb-tab")[0].click();
+
+  // ── Ranked ──────────────────────────────────────────────────────────────
+  const rankedList = document.getElementById("lb-ranked-list");
+  rankedList.innerHTML = "";
+  if (!data.ranked || data.ranked.length === 0) {
+    rankedList.innerHTML = '<div class="lb-meta">No ranked players yet — play some games!</div>';
+  } else {
+    data.ranked.forEach((p, i) => {
+      const row = document.createElement("div");
+      row.className = `lb-row${myId && p.id === myId ? " is-me" : ""}`;
+      row.innerHTML = `
+        <span class="lb-rank ${rankClass(i)}">${i + 1}</span>
+        <span class="lb-username">${_escapeHtml(p.username)}</span>
+        <span class="lb-tier">${_escapeHtml(p.tier)}</span>
+        <span class="lb-value">${p.elo}</span>
+      `;
+      row.addEventListener("click", () => {
+        WS.send({ type: "get_profile", user_id: p.id });
+      });
+      rankedList.appendChild(row);
+    });
+  }
+
+  // ── Speed ────────────────────────────────────────────────────────────────
+  const speedGrid = document.getElementById("lb-speed-grid");
+  speedGrid.innerHTML = "";
+  for (const [diff, label] of [["easy", "Easy"], ["medium", "Medium"], ["hard", "Hard"]]) {
+    const col = document.createElement("div");
+    col.className = "lb-speed-col";
+    col.innerHTML = `<div class="lb-speed-header diff-${diff}">${label}</div>`;
+    const rows = data.speed?.[diff] || [];
+    if (rows.length === 0) {
+      col.innerHTML += '<div class="lb-meta">No records yet</div>';
+    } else {
+      rows.forEach((p, i) => {
+        const row = document.createElement("div");
+        row.className = `lb-speed-row${myId && p.id === myId ? " is-me" : ""}`;
+        row.innerHTML = `
+          <span class="lb-speed-rank ${rankClass(i)}">${i + 1}</span>
+          <span class="lb-speed-name">${_escapeHtml(p.username)}</span>
+          <span class="lb-speed-time">${fmt(p.best_time)}</span>
+        `;
+        row.addEventListener("click", () => {
+          WS.send({ type: "get_profile", user_id: p.id });
+        });
+        col.appendChild(row);
+      });
+    }
+    speedGrid.appendChild(col);
+  }
 }
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
