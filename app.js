@@ -14,6 +14,12 @@ const App = {
   _publicTab: "easy",        // currently viewed difficulty tab in public lobbies
   _lastRoomList: [],
   _soloSettings: { difficulty: 'easy' },
+  _soloReturnView: null,     // where "Back" / "Done" goes after solo/journey puzzle
+  _journeyState: {           // runtime journey state
+    counts: { easy: 0, medium: 0, hard: 0 },
+    nextDifficulty: null,
+    nextIndex: null,
+  },
 
   init() {
     Auth.init();
@@ -73,6 +79,130 @@ const App = {
     this._pendingQueueMode = 'solo';
     _showDifficultyPicker('solo');
   },
+
+  // ─── Journey ──────────────────────────────────────────────────────────────
+
+  _openJourney() {
+    App.showView('journey');
+    // Show loading state in each section
+    ['easy', 'medium', 'hard'].forEach(d => {
+      document.getElementById(`journey-dots-${d}`).innerHTML =
+        '<span class="journey-loading">Loading…</span>';
+    });
+    WS.send({ type: 'get_journey_info' });
+  },
+
+  _renderJourneyDots(counts, serverCompletions) {
+    this._journeyState.counts = counts;
+    const progress = this._getJourneyProgress();
+
+    // Merge server completions (server wins on conflict)
+    if (serverCompletions) {
+      for (const c of serverCompletions) {
+        if (!progress[c.difficulty]) progress[c.difficulty] = {};
+        const ex = progress[c.difficulty][String(c.index)];
+        if (ex === undefined || c.best_time < ex) {
+          progress[c.difficulty][String(c.index)] = c.best_time;
+        }
+      }
+      localStorage.setItem('speedoku_journey', JSON.stringify(progress));
+    }
+
+    let totalDone = 0, totalCount = 0;
+    for (const diff of ['easy', 'medium', 'hard']) {
+      const count = counts[diff] || 0;
+      totalCount += count;
+      const diffProgress = progress[diff] || {};
+      const doneCount = Object.keys(diffProgress).length;
+      totalDone += doneCount;
+
+      document.getElementById(`journey-count-${diff}`).textContent = `${doneCount} / ${count}`;
+
+      const container = document.getElementById(`journey-dots-${diff}`);
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('button');
+        dot.className = 'journey-dot';
+        dot.dataset.diff = diff;
+        dot.dataset.index = i;
+        const bestTime = diffProgress[String(i)];
+        if (bestTime !== undefined) {
+          dot.classList.add('done');
+          const mins = Math.floor(bestTime / 60);
+          const secs = String(Math.floor(bestTime % 60)).padStart(2, '0');
+          dot.dataset.tip = `${mins}:${secs}`;
+        } else {
+          dot.dataset.tip = `#${i + 1}`;
+        }
+        dot.addEventListener('click', () => App._startJourneyPuzzle(diff, i));
+        container.appendChild(dot);
+      }
+    }
+    document.getElementById('journey-total-progress').textContent = `${totalDone} / ${totalCount}`;
+  },
+
+  _startJourneyPuzzle(difficulty, index) {
+    this._journeyState.difficulty = difficulty;
+    this._journeyState.index = index;
+    this._soloReturnView = 'journey';
+    App.showView('solo');
+    const boardEl = document.getElementById('solo-board');
+    if (boardEl) boardEl.innerHTML = '<div class="solo-loading">Loading puzzle…</div>';
+    WS.send({ type: 'get_journey_puzzle', difficulty, index });
+  },
+
+  _handleJourneyComplete(difficulty, index, elapsed) {
+    // Persist to localStorage (keep personal best)
+    const p = this._getJourneyProgress();
+    if (!p[difficulty]) p[difficulty] = {};
+    const existing = p[difficulty][String(index)];
+    const isNewBest = existing === undefined || elapsed < existing;
+    if (isNewBest) p[difficulty][String(index)] = elapsed;
+    localStorage.setItem('speedoku_journey', JSON.stringify(p));
+
+    // Update dot on the map if it's rendered
+    this._updateJourneyDot(difficulty, index, elapsed, isNewBest);
+
+    // Completion card: show Next Puzzle if there's one in this difficulty
+    const nextIndex = index + 1;
+    const hasNext = nextIndex < (this._journeyState.counts[difficulty] || 0);
+    document.getElementById('btn-solo-next').classList.toggle('hidden', !hasNext);
+    if (hasNext) {
+      this._journeyState.nextDifficulty = difficulty;
+      this._journeyState.nextIndex = nextIndex;
+    }
+    document.getElementById('btn-solo-done').textContent = 'Back to Journey';
+    if (isNewBest) document.getElementById('solo-complete-pb').classList.remove('hidden');
+
+    // Sync to server if logged in
+    if (WS && !Auth.isGuest && Auth.user) {
+      WS.send({ type: 'journey_complete', difficulty, index, time_seconds: elapsed });
+    }
+  },
+
+  _updateJourneyDot(difficulty, index, time, isNewBest) {
+    const dot = document.querySelector(`#journey-dots-${difficulty} [data-index="${index}"]`);
+    if (!dot) return;
+    dot.classList.add('done');
+    if (isNewBest) dot.classList.add('pb');
+    const mins = Math.floor(time / 60);
+    const secs = String(Math.floor(time % 60)).padStart(2, '0');
+    dot.dataset.tip = `${mins}:${secs}`;
+    // Refresh section count
+    const container = document.getElementById(`journey-dots-${difficulty}`);
+    const doneCount = container.querySelectorAll('.journey-dot.done').length;
+    const total = this._journeyState.counts[difficulty] || 0;
+    document.getElementById(`journey-count-${difficulty}`).textContent = `${doneCount} / ${total}`;
+    // Refresh total
+    const totalDone = document.querySelectorAll('.journey-dot.done').length;
+    const totalCount = Object.values(this._journeyState.counts).reduce((a, b) => a + b, 0);
+    document.getElementById('journey-total-progress').textContent = `${totalDone} / ${totalCount}`;
+  },
+
+  _getJourneyProgress() {
+    try { return JSON.parse(localStorage.getItem('speedoku_journey') || '{}'); }
+    catch { return {}; }
+  },
 };
 
 // ─── Navigation / Button Bindings ────────────────────────────────────────────
@@ -116,6 +246,14 @@ function _bindNavigation() {
   });
 
   // Lobby Browser — step 1: pick mode
+  document.getElementById("btn-journey").addEventListener("click", () => {
+    App._openJourney();
+  });
+
+  document.getElementById("btn-journey-back").addEventListener("click", () => {
+    App.showView("lobby-browser");
+  });
+
   document.getElementById("btn-solo").addEventListener("click", () => {
     App._showSoloDifficultyPicker();
   });
@@ -242,16 +380,32 @@ function _bindNavigation() {
   // Solo mode navigation
   document.getElementById("btn-solo-back").addEventListener("click", () => {
     Game.stopSolo();
-    App.showView("lobby-browser");
+    const returnView = App._soloReturnView || "lobby-browser";
+    App._soloReturnView = null;
+    App.showView(returnView);
   });
 
   document.getElementById("btn-solo-again").addEventListener("click", () => {
-    App._startSolo(App._soloSettings.difficulty);
+    if (Game._journeyIndex !== null) {
+      // Replay the same journey puzzle
+      App._startJourneyPuzzle(Game._journeyDifficulty, Game._journeyIndex);
+    } else {
+      App._startSolo(App._soloSettings.difficulty);
+    }
+  });
+
+  document.getElementById("btn-solo-next").addEventListener("click", () => {
+    const { nextDifficulty, nextIndex } = App._journeyState;
+    if (nextDifficulty != null) {
+      App._startJourneyPuzzle(nextDifficulty, nextIndex);
+    }
   });
 
   document.getElementById("btn-solo-done").addEventListener("click", () => {
     Game.stopSolo();
-    App.showView("lobby-browser");
+    const returnView = App._soloReturnView || "lobby-browser";
+    App._soloReturnView = null;
+    App.showView(returnView);
   });
 
   document.getElementById("btn-solo-timer-toggle").addEventListener("click", () => {
@@ -399,6 +553,18 @@ function _registerAppHandlers() {
     if (msg.new_best) {
       document.getElementById("solo-complete-pb").classList.remove("hidden");
     }
+  });
+
+  WS.on("journey_info", msg => {
+    App._renderJourneyDots(msg.counts, msg.completions || null);
+  });
+
+  WS.on("journey_puzzle", msg => {
+    Game.startSolo(msg.puzzle, msg.solution, msg.given_cells, msg.difficulty, msg.puzzle_id, msg.index);
+  });
+
+  WS.on("journey_result", () => {
+    // Server confirmed — client already handled localStorage + UI in _handleJourneyComplete
   });
 }
 

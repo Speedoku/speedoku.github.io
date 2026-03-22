@@ -88,6 +88,44 @@
   </div>
 </div>
 
+<!-- ─── Journey Mode ───────────────────────────────────────────────────────── -->
+<div id="view-journey" class="view">
+  <header class="view-header">
+    <div class="logo-small"><img src="logo.png" alt="Speedoku" class="logo-img-sm"></div>
+    <div class="journey-header-right">
+      <span id="journey-total-progress" class="journey-total-progress"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-journey-back">← Back</button>
+    </div>
+  </header>
+  <div class="journey-body">
+    <div class="journey-hero">
+      <h2 class="journey-title">Journey</h2>
+      <p class="journey-sub">Every puzzle in the bank · work through them at your own pace</p>
+    </div>
+    <div class="journey-section">
+      <div class="journey-section-header">
+        <span class="journey-section-label diff-easy">Easy</span>
+        <span class="journey-section-count" id="journey-count-easy"></span>
+      </div>
+      <div class="journey-dots" id="journey-dots-easy"></div>
+    </div>
+    <div class="journey-section">
+      <div class="journey-section-header">
+        <span class="journey-section-label diff-medium">Medium</span>
+        <span class="journey-section-count" id="journey-count-medium"></span>
+      </div>
+      <div class="journey-dots" id="journey-dots-medium"></div>
+    </div>
+    <div class="journey-section">
+      <div class="journey-section-header">
+        <span class="journey-section-label diff-hard">Hard</span>
+        <span class="journey-section-count" id="journey-count-hard"></span>
+      </div>
+      <div class="journey-dots" id="journey-dots-hard"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Solo Mode ─────────────────────────────────────────────────────────── -->
 <div id="view-solo" class="view">
   <header class="solo-header">
@@ -128,7 +166,8 @@
       <div class="solo-complete-time" id="solo-complete-time">0:00</div>
       <div class="solo-complete-pb hidden" id="solo-complete-pb">New Personal Best!</div>
       <div class="solo-complete-actions">
-        <button class="btn btn-primary" id="btn-solo-again">Play Again</button>
+        <button class="btn btn-primary hidden" id="btn-solo-next">Next Puzzle →</button>
+        <button class="btn btn-ghost" id="btn-solo-again">Play Again</button>
         <button class="btn btn-ghost" id="btn-solo-done">Back to Lobby</button>
       </div>
     </div>
@@ -157,9 +196,13 @@
       <div id="browser-step-1" class="browser-step">
         <div class="section-label">Quick Play</div>
         <div class="mode-cards">
+          <button class="mode-card" id="btn-journey">
+            <div class="mode-card-title">Journey</div>
+            <div class="mode-card-desc">500 puzzles · your own pace · track your progress</div>
+          </button>
           <button class="mode-card" id="btn-solo">
             <div class="mode-card-title">Solo</div>
-            <div class="mode-card-desc">Play at your own pace · no opponents · optional timer</div>
+            <div class="mode-card-desc">Random puzzle · no opponents · optional timer</div>
           </button>
           <button class="mode-card" id="btn-quick-match">
             <div class="mode-card-title">Ranked</div>

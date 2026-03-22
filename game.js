@@ -33,6 +33,10 @@ const Game = {
   _soloBoardEl: null,
   _soloNumpadEl: null,
 
+  // Journey context (non-null when playing from Journey map)
+  _journeyIndex: null,
+  _journeyDifficulty: null,
+
   /** Called when the server sends us the puzzle. */
   init(puzzle, givenCells, lives) {
     this.puzzle = puzzle;
@@ -61,13 +65,18 @@ const Game = {
     });
   },
 
-  startSolo(puzzleData, solution, givenCells, difficulty, puzzleId) {
-    this._soloMode    = true;
+  startSolo(puzzleData, solution, givenCells, difficulty, puzzleId, journeyIndex = null) {
+    this._soloMode       = true;
     this._soloDifficulty = difficulty;
     this._soloPuzzleId   = puzzleId;
     this._soloSolution   = solution;
     this._soloBoardEl    = document.getElementById('solo-board');
     this._soloNumpadEl   = document.getElementById('solo-numpad');
+    this._journeyIndex     = journeyIndex;
+    this._journeyDifficulty = journeyIndex !== null ? difficulty : null;
+
+    // Journey defaults to timer hidden; solo keeps last user preference
+    if (journeyIndex !== null) this._soloTimerEnabled = false;
 
     // Reset board state
     this.puzzle      = puzzleData.map(r => [...r]);
@@ -80,24 +89,25 @@ const Game = {
     this.lockedCells     = {};
     this.myFilledCount   = 0;
 
-    this._soloElapsed  = 0;
-    this._soloStartTime = null;
+    // Timer always runs internally; display is toggled separately
+    this._soloElapsed   = 0;
+    this._soloStartTime = Date.now();
     clearInterval(this._soloTimerInterval);
+    this._soloTimerInterval = setInterval(() => this._tickSoloTimer(), 1000);
 
     document.getElementById('solo-diff-label').textContent =
       difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
     document.getElementById('solo-timer').textContent = '0:00';
+    document.getElementById('solo-timer').style.visibility =
+      this._soloTimerEnabled ? 'visible' : 'hidden';
+    document.getElementById('btn-solo-timer-toggle').textContent =
+      this._soloTimerEnabled ? 'Hide Timer' : 'Show Timer';
     document.getElementById('solo-complete').classList.add('hidden');
     document.getElementById('solo-notes-btn').classList.remove('active');
 
     this._renderSoloBoard();
     this._updateSoloNumpad();
     this._bindSoloInput();
-
-    if (this._soloTimerEnabled) {
-      this._soloStartTime = Date.now();
-      this._soloTimerInterval = setInterval(() => this._tickSoloTimer(), 1000);
-    }
   },
 
   _renderSoloBoard() {
@@ -235,9 +245,8 @@ const Game = {
   _onSoloComplete() {
     this.active = false;
     clearInterval(this._soloTimerInterval);
-    const elapsed = this._soloTimerEnabled
-      ? Math.floor((Date.now() - (this._soloStartTime || Date.now())) / 1000) + this._soloElapsed
-      : 0;
+    // Timer always runs now — elapsed is always valid
+    const elapsed = Math.floor((Date.now() - this._soloStartTime) / 1000) + this._soloElapsed;
 
     const m = Math.floor(elapsed / 60);
     const s = elapsed % 60;
@@ -245,14 +254,21 @@ const Game = {
     document.getElementById('solo-complete-pb').classList.add('hidden');
     document.getElementById('solo-complete').classList.remove('hidden');
 
-    // Notify server if logged in
-    if (WS && WS.isConnected && !Auth.isGuest) {
-      WS.send({
-        type: 'solo_complete',
-        puzzle_id: this._soloPuzzleId,
-        difficulty: this._soloDifficulty,
-        time_seconds: elapsed,
-      });
+    if (this._journeyIndex !== null) {
+      // Journey context — delegate to App for localStorage + server sync
+      App._handleJourneyComplete(this._journeyDifficulty, this._journeyIndex, elapsed);
+    } else {
+      // Regular solo
+      document.getElementById('btn-solo-next').classList.add('hidden');
+      document.getElementById('btn-solo-done').textContent = 'Back to Lobby';
+      if (WS && WS.isConnected && !Auth.isGuest) {
+        WS.send({
+          type: 'solo_complete',
+          puzzle_id: this._soloPuzzleId,
+          difficulty: this._soloDifficulty,
+          time_seconds: elapsed,
+        });
+      }
     }
   },
 
@@ -264,16 +280,10 @@ const Game = {
 
   setSoloTimerEnabled(enabled) {
     this._soloTimerEnabled = enabled;
-    if (enabled && this.active && !this._soloStartTime) {
-      this._soloStartTime = Date.now();
-      this._soloTimerInterval = setInterval(() => this._tickSoloTimer(), 1000);
-    } else if (!enabled) {
-      clearInterval(this._soloTimerInterval);
-      this._soloElapsed += Math.floor((Date.now() - (this._soloStartTime || Date.now())) / 1000);
-      this._soloStartTime = null;
-    }
+    // Timer always runs internally — just toggle the display
     document.getElementById('solo-timer').style.visibility = enabled ? 'visible' : 'hidden';
     document.getElementById('btn-solo-timer-toggle').textContent = enabled ? 'Hide Timer' : 'Show Timer';
+    if (enabled) this._tickSoloTimer(); // immediately refresh display
   },
 
   _tickSoloTimer() {

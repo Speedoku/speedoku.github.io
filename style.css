@@ -1249,3 +1249,145 @@ html, body {
     margin: 0 16px;
   }
 }
+
+/* ─── Journey Mode ────────────────────────────────────────────────────────── */
+
+#view-journey {
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.journey-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.journey-total-progress {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.journey-body {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+.journey-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.journey-title {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.journey-sub {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  margin: 0;
+}
+
+.journey-section {
+  margin-bottom: 36px;
+}
+
+.journey-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.journey-section-label {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.journey-section-label.diff-easy   { color: #4ade80; }
+.journey-section-label.diff-medium { color: var(--accent); }
+.journey-section-label.diff-hard   { color: #f87171; }
+
+.journey-section-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.journey-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.journey-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, transform 0.1s;
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+}
+.journey-dot:hover {
+  border-color: var(--text-dim);
+  transform: scale(1.2);
+  z-index: 1;
+}
+.journey-dot.done {
+  background: var(--text-dim);
+  border-color: var(--text-dim);
+}
+.journey-dot.pb {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 5px rgba(255, 185, 60, 0.35);
+}
+
+/* Hover tooltip via data-tip */
+.journey-dot::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-2);
+  color: var(--text);
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 10;
+}
+.journey-dot:hover::after {
+  opacity: 1;
+}
+
+/* Loading state */
+.journey-loading {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 12px 0;
+}
+
+/* Complete actions — allow 3 buttons to wrap gracefully */
+.solo-complete-actions {
+  flex-wrap: wrap;
+  justify-content: center;
+}
