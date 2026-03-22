@@ -1114,8 +1114,6 @@ html, body {
 
 /* ─── Solo Mode ──────────────────────────────────────────────────────────── */
 #view-solo {
-  display: flex;
-  flex-direction: column;
   background: var(--bg);
   overflow: hidden;
 }
