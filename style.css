@@ -328,6 +328,7 @@ html, body {
 .mode-card-desc  { font-size: 13px; color: var(--text-muted); line-height: 1.5; font-weight: 500; }
 
 /* ─── Difficulty Picker ───────────────────────────────────────────────────── */
+.diff-step-header { display: flex; align-items: center; justify-content: space-between; }
 .diff-pick-row { display: flex; gap: 8px; }
 .diff-pick {
   display: flex;

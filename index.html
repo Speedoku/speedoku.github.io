@@ -101,7 +101,7 @@
 
   <div class="solo-game-area">
     <div class="board-wrap">
-      <div id="solo-board" class="board"></div>
+      <div id="solo-board" class="sudoku-board"></div>
     </div>
     <div class="solo-side">
       <div id="solo-numpad" class="numpad">
@@ -176,9 +176,12 @@
         </div>
       </div>
 
-      <!-- Step 2: difficulty picker (shown after clicking Ranked/Casual) -->
+      <!-- Step 2: difficulty picker (shown after clicking Ranked/Casual/Solo) -->
       <div id="browser-step-2" class="browser-step hidden">
-        <div class="section-label" id="difficulty-step-label">Select difficulty</div>
+        <div class="diff-step-header">
+          <div class="section-label" id="difficulty-step-label">Select difficulty</div>
+          <button class="btn btn-link" id="btn-cancel-diff">← Back</button>
+        </div>
         <div class="diff-pick-row">
           <button class="btn btn-ghost diff-pick" data-diff="easy">
             <span class="diff-name">Easy</span>
@@ -195,7 +198,6 @@
         </div>
         <div class="diff-pick-actions">
           <button class="btn btn-primary" id="btn-confirm-queue">Find Game</button>
-          <button class="btn btn-link" id="btn-cancel-diff">← Back</button>
         </div>
       </div>
 

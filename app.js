@@ -622,15 +622,19 @@ function _showDifficultyPicker(mode) {
   App._pendingQueueMode = mode;
   document.getElementById("browser-step-1").classList.add("hidden");
   document.getElementById("browser-step-2").classList.remove("hidden");
+  document.querySelector(".rooms-section").classList.add("hidden");
   const label = document.getElementById("difficulty-step-label");
   if (mode === "ranked") label.textContent = "Ranked — select difficulty";
   else if (mode === "solo") label.textContent = "Solo — select difficulty";
   else label.textContent = "Casual — select difficulty";
+  document.getElementById("btn-confirm-queue").textContent =
+    mode === "solo" ? "Play" : "Find Game";
 }
 
 function _hideDifficultyPicker() {
   document.getElementById("browser-step-2").classList.add("hidden");
   document.getElementById("browser-step-1").classList.remove("hidden");
+  document.querySelector(".rooms-section").classList.remove("hidden");
   App._pendingQueueMode = null;
 }
 
