@@ -133,21 +133,14 @@ html, body {
   background: var(--bg-1);
   flex-shrink: 0;
 }
-/* Brand mark in header — mark carries the amber, text is neutral */
+/* Brand mark in header */
 .logo-small {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 16px;
-  letter-spacing: -0.02em;
-  color: var(--text);
 }
-.logo-mark-sm {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+.logo-img-sm {
+  height: 26px;
+  width: auto;
 }
 .header-actions { display: flex; gap: 8px; align-items: center; }
 .header-user {
@@ -176,23 +169,13 @@ html, body {
 }
 .logo {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  justify-content: center;
 }
-.logo-mark {
-  width: 48px;
-  height: 48px;
+.logo-img {
+  width: clamp(220px, 55vw, 340px);
+  height: auto;
 }
-.logo-wordmark {
-  font-family: var(--font-ui);
-  font-size: clamp(52px, 12vw, 88px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-.logo-speed { color: var(--accent); }
-.logo-oku   { color: var(--text); }
 .home-actions {
   display: flex;
   flex-direction: column;
