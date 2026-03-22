@@ -220,7 +220,7 @@ const Game = {
     el.querySelectorAll('.num-btn[data-num]').forEach(btn => {
       const n = +btn.dataset.num;
       btn.disabled = counts[n] >= 9;
-      btn.classList.toggle('completed', counts[n] >= 9);
+      btn.classList.toggle('num-complete', counts[n] >= 9);
     });
   },
 
