@@ -5,7 +5,7 @@
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 // Change this to your server address before deploying.
-const WS_URL = "ws://localhost:8103";
+const WS_URL = "wss://ws.speedoku.net";
 
 // ─── State ───────────────────────────────────────────────────────────────────
 let _socket = null;
