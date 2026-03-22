@@ -18,6 +18,7 @@ const Auth = {
     _bindForms();
     _bindTabs();
     _registerHandlers();
+    _checkResetUrl();
   },
 
   /** Returns true if the user is authenticated (not a guest). */
@@ -75,6 +76,36 @@ function _bindForms() {
     }
     WS.send({ type: "register", username, email, password });
   });
+
+  document.getElementById("form-forgot").addEventListener("submit", e => {
+    e.preventDefault();
+    const email = document.getElementById("forgot-email").value.trim();
+    _clearError("forgot-error");
+    document.getElementById("forgot-success").classList.add("hidden");
+    document.getElementById("forgot-submit").disabled = true;
+    WS.send({ type: "forgot_password", email });
+  });
+
+  document.getElementById("form-reset").addEventListener("submit", e => {
+    e.preventDefault();
+    const password = document.getElementById("reset-password").value;
+    const confirm  = document.getElementById("reset-confirm").value;
+    _clearError("reset-error");
+    if (password !== confirm) {
+      _showError("reset-error", "Passwords don't match");
+      return;
+    }
+    const token = document.getElementById("view-reset").dataset.token || "";
+    WS.send({ type: "reset_password", token, password });
+  });
+
+  document.getElementById("btn-forgot").addEventListener("click", () => {
+    App.showView("forgot");
+  });
+
+  document.getElementById("forgot-back").addEventListener("click", () => {
+    App.showView("auth");
+  });
 }
 
 function _bindTabs() {
@@ -116,6 +147,21 @@ function _registerHandlers() {
     App.updateHeaderUser();
   });
 
+  WS.on("forgot_ok", () => {
+    document.getElementById("forgot-submit").disabled = false;
+    const el = document.getElementById("forgot-success");
+    el.textContent = "If that email is registered, a reset link is on its way.";
+    el.classList.remove("hidden");
+    document.getElementById("forgot-email").value = "";
+  });
+
+  WS.on("reset_ok", () => {
+    // Clear the token, go to sign in with a success toast
+    history.replaceState(null, "", window.location.pathname);
+    App.showView("auth");
+    showToast("Password updated — you can now sign in.", "success");
+  });
+
   WS.on("error", msg => {
     // Route errors to the active auth form if we're on auth view
     const activeView = document.querySelector(".view.active");
@@ -144,6 +190,18 @@ function _showError(id, msg) {
 function _clearError(id) {
   const el = document.getElementById(id);
   if (el) el.textContent = "";
+}
+
+function _checkResetUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("reset");
+  if (token) {
+    const view = document.getElementById("view-reset");
+    view.dataset.token = token;
+    App.showView("reset");
+    // Clean the token from the URL bar without reloading
+    history.replaceState(null, "", window.location.pathname);
+  }
 }
 
 /** Global toast helper — available everywhere. */
