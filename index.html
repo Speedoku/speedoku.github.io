@@ -88,6 +88,53 @@
   </div>
 </div>
 
+<!-- ─── Solo Mode ─────────────────────────────────────────────────────────── -->
+<div id="view-solo" class="view">
+  <header class="solo-header">
+    <button class="btn btn-ghost btn-sm" id="btn-solo-back">← Back</button>
+    <div class="solo-header-center">
+      <span class="solo-diff-label" id="solo-diff-label">Easy</span>
+      <span class="solo-timer" id="solo-timer">0:00</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btn-solo-timer-toggle">Hide Timer</button>
+  </header>
+
+  <div class="solo-game-area">
+    <div class="board-wrap">
+      <div id="solo-board" class="board"></div>
+    </div>
+    <div class="solo-side">
+      <div id="solo-numpad" class="numpad">
+        <button class="num-btn" data-num="1">1</button>
+        <button class="num-btn" data-num="2">2</button>
+        <button class="num-btn" data-num="3">3</button>
+        <button class="num-btn" data-num="4">4</button>
+        <button class="num-btn" data-num="5">5</button>
+        <button class="num-btn" data-num="6">6</button>
+        <button class="num-btn" data-num="7">7</button>
+        <button class="num-btn" data-num="8">8</button>
+        <button class="num-btn" data-num="9">9</button>
+        <button class="num-btn erase-btn" id="solo-erase-btn">⌫</button>
+        <button class="num-btn notes-btn" id="solo-notes-btn">✎</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion overlay -->
+  <div class="solo-complete hidden" id="solo-complete">
+    <div class="solo-complete-card">
+      <div class="solo-complete-emoji">✓</div>
+      <div class="solo-complete-title">Solved!</div>
+      <div class="solo-complete-time" id="solo-complete-time">0:00</div>
+      <div class="solo-complete-pb hidden" id="solo-complete-pb">New Personal Best!</div>
+      <div class="solo-complete-actions">
+        <button class="btn btn-primary" id="btn-solo-again">Play Again</button>
+        <button class="btn btn-ghost" id="btn-solo-done">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Lobby Browser -->
 <div id="view-lobby-browser" class="view">
   <header class="view-header">
@@ -110,6 +157,10 @@
       <div id="browser-step-1" class="browser-step">
         <div class="section-label">Quick Play</div>
         <div class="mode-cards">
+          <button class="mode-card" id="btn-solo">
+            <div class="mode-card-title">Solo</div>
+            <div class="mode-card-desc">Play at your own pace · no opponents · optional timer</div>
+          </button>
           <button class="mode-card" id="btn-quick-match">
             <div class="mode-card-title">Ranked</div>
             <div class="mode-card-desc">Compete for ELO · matched by skill level</div>

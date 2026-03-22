@@ -21,6 +21,18 @@ const Game = {
   active: false,
   lockedCells: {},       // "r,c" → timestamp when lockout expires
 
+  // Solo mode state
+  _soloMode: false,
+  _soloTimerEnabled: true,
+  _soloTimerInterval: null,
+  _soloStartTime: null,
+  _soloElapsed: 0,
+  _soloPuzzleId: null,
+  _soloDifficulty: null,
+  _soloSolution: null,
+  _soloBoardEl: null,
+  _soloNumpadEl: null,
+
   /** Called when the server sends us the puzzle. */
   init(puzzle, givenCells, lives) {
     this.puzzle = puzzle;
@@ -47,6 +59,242 @@ const Game = {
       btn.disabled = false;
       btn.classList.remove("num-complete");
     });
+  },
+
+  startSolo(puzzleData, solution, givenCells, difficulty, puzzleId) {
+    this._soloMode    = true;
+    this._soloDifficulty = difficulty;
+    this._soloPuzzleId   = puzzleId;
+    this._soloSolution   = solution;
+    this._soloBoardEl    = document.getElementById('solo-board');
+    this._soloNumpadEl   = document.getElementById('solo-numpad');
+
+    // Reset board state
+    this.puzzle      = puzzleData.map(r => [...r]);
+    this.board       = puzzleData.map(r => [...r]);
+    this.givenCells  = new Set(givenCells);
+    this.notes       = Array.from({length: 9}, () => Array.from({length: 9}, () => new Set()));
+    this.selectedCell    = null;
+    this.notesMode       = false;
+    this.active          = true;
+    this.lockedCells     = {};
+    this.myFilledCount   = 0;
+
+    this._soloElapsed  = 0;
+    this._soloStartTime = null;
+    clearInterval(this._soloTimerInterval);
+
+    document.getElementById('solo-diff-label').textContent =
+      difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    document.getElementById('solo-timer').textContent = '0:00';
+    document.getElementById('solo-complete').classList.add('hidden');
+    document.getElementById('solo-notes-btn').classList.remove('active');
+
+    this._renderSoloBoard();
+    this._updateSoloNumpad();
+    this._bindSoloInput();
+
+    if (this._soloTimerEnabled) {
+      this._soloStartTime = Date.now();
+      this._soloTimerInterval = setInterval(() => this._tickSoloTimer(), 1000);
+    }
+  },
+
+  _renderSoloBoard() {
+    const el = this._soloBoardEl;
+    el.innerHTML = '';
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        const key = `${r},${c}`;
+        if (this.givenCells.has(key)) {
+          cell.classList.add('given');
+          cell.textContent = this.puzzle[r][c];
+        }
+        cell.addEventListener('click', () => this._soloSelectCell(r, c));
+        el.appendChild(cell);
+      }
+    }
+  },
+
+  _soloSelectCell(r, c) {
+    if (!this.active) return;
+    this.selectedCell = [r, c];
+    this._applySoloHighlights();
+  },
+
+  _applySoloHighlights() {
+    const el = this._soloBoardEl;
+    if (!el) return;
+    const cells = el.querySelectorAll('.cell');
+    const [sr, sc] = this.selectedCell || [-1, -1];
+    const selVal = (sr >= 0) ? this.board[sr][sc] : 0;
+    cells.forEach(cell => {
+      const r = +cell.dataset.row, c = +cell.dataset.col;
+      cell.classList.remove('selected','highlight','same-number');
+      if (r === sr && c === sc) { cell.classList.add('selected'); return; }
+      const sameBox = Math.floor(r/3)===Math.floor(sr/3) && Math.floor(c/3)===Math.floor(sc/3);
+      if (r === sr || c === sc || sameBox) cell.classList.add('highlight');
+      if (selVal && this.board[r][c] === selVal) cell.classList.add('same-number');
+    });
+  },
+
+  _enterSoloValue(num) {
+    if (!this.active || !this.selectedCell) return;
+    const [r, c] = this.selectedCell;
+    if (this.givenCells.has(`${r},${c}`)) return;
+
+    if (this.notesMode) {
+      const s = this.notes[r][c];
+      s.has(num) ? s.delete(num) : s.add(num);
+      this._applySoloCell(r, c);
+      return;
+    }
+
+    const prev = this.board[r][c];
+    this.board[r][c] = num;
+    if (!prev) this.myFilledCount++;
+    this._applySoloCell(r, c);
+    this._applySoloHighlights();
+    this._updateSoloNumpad();
+    this._checkSoloComplete();
+  },
+
+  _eraseSoloValue() {
+    if (!this.active || !this.selectedCell) return;
+    const [r, c] = this.selectedCell;
+    if (this.givenCells.has(`${r},${c}`)) return;
+    if (this.notesMode) {
+      this.notes[r][c].clear();
+    } else if (this.board[r][c]) {
+      this.board[r][c] = 0;
+      this.myFilledCount--;
+    }
+    this._applySoloCell(r, c);
+    this._applySoloHighlights();
+    this._updateSoloNumpad();
+  },
+
+  _applySoloCell(r, c) {
+    const el = this._soloBoardEl;
+    if (!el) return;
+    const cell = el.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+    if (!cell) return;
+    const val = this.board[r][c];
+    const noteSet = this.notes[r][c];
+    if (noteSet.size > 0 && !val) {
+      cell.innerHTML = '';
+      cell.classList.add('has-notes');
+      const grid = document.createElement('div');
+      grid.className = 'notes-grid';
+      for (let n = 1; n <= 9; n++) {
+        const s = document.createElement('span');
+        s.textContent = noteSet.has(n) ? n : '';
+        grid.appendChild(s);
+      }
+      cell.appendChild(grid);
+    } else {
+      cell.classList.remove('has-notes');
+      cell.innerHTML = '';
+      if (val) cell.textContent = val;
+    }
+    // Colour validation: correct = neutral, wrong = error tint
+    cell.classList.remove('cell-wrong');
+    if (val && !this.givenCells.has(`${r},${c}`)) {
+      if (this._soloSolution && val !== this._soloSolution[r][c]) {
+        cell.classList.add('cell-wrong');
+      }
+    }
+  },
+
+  _updateSoloNumpad() {
+    const el = this._soloNumpadEl;
+    if (!el) return;
+    const counts = Array(10).fill(0);
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (this.board[r][c]) counts[this.board[r][c]]++;
+    el.querySelectorAll('.num-btn[data-num]').forEach(btn => {
+      const n = +btn.dataset.num;
+      btn.disabled = counts[n] >= 9;
+      btn.classList.toggle('completed', counts[n] >= 9);
+    });
+  },
+
+  _checkSoloComplete() {
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (!this.board[r][c] || (this._soloSolution && this.board[r][c] !== this._soloSolution[r][c]))
+          return;
+    this._onSoloComplete();
+  },
+
+  _onSoloComplete() {
+    this.active = false;
+    clearInterval(this._soloTimerInterval);
+    const elapsed = this._soloTimerEnabled
+      ? Math.floor((Date.now() - (this._soloStartTime || Date.now())) / 1000) + this._soloElapsed
+      : 0;
+
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    document.getElementById('solo-complete-time').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    document.getElementById('solo-complete-pb').classList.add('hidden');
+    document.getElementById('solo-complete').classList.remove('hidden');
+
+    // Notify server if logged in
+    if (WS && WS.isConnected && !Auth.isGuest) {
+      WS.send({
+        type: 'solo_complete',
+        puzzle_id: this._soloPuzzleId,
+        difficulty: this._soloDifficulty,
+        time_seconds: elapsed,
+      });
+    }
+  },
+
+  stopSolo() {
+    this._soloMode = false;
+    this.active = false;
+    clearInterval(this._soloTimerInterval);
+  },
+
+  setSoloTimerEnabled(enabled) {
+    this._soloTimerEnabled = enabled;
+    if (enabled && this.active && !this._soloStartTime) {
+      this._soloStartTime = Date.now();
+      this._soloTimerInterval = setInterval(() => this._tickSoloTimer(), 1000);
+    } else if (!enabled) {
+      clearInterval(this._soloTimerInterval);
+      this._soloElapsed += Math.floor((Date.now() - (this._soloStartTime || Date.now())) / 1000);
+      this._soloStartTime = null;
+    }
+    document.getElementById('solo-timer').style.visibility = enabled ? 'visible' : 'hidden';
+    document.getElementById('btn-solo-timer-toggle').textContent = enabled ? 'Hide Timer' : 'Show Timer';
+  },
+
+  _tickSoloTimer() {
+    if (!this._soloStartTime) return;
+    const elapsed = this._soloElapsed + Math.floor((Date.now() - this._soloStartTime) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    document.getElementById('solo-timer').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  },
+
+  _bindSoloInput() {
+    // Numpad buttons
+    const np = this._soloNumpadEl;
+    np.querySelectorAll('.num-btn[data-num]').forEach(btn => {
+      btn.onclick = () => this._enterSoloValue(+btn.dataset.num);
+    });
+    document.getElementById('solo-erase-btn').onclick = () => this._eraseSoloValue();
+    document.getElementById('solo-notes-btn').onclick = () => {
+      this.notesMode = !this.notesMode;
+      document.getElementById('solo-notes-btn').classList.toggle('active', this.notesMode);
+    };
   },
 
   /** Called when game_start countdown begins. */
@@ -323,9 +571,28 @@ function _moveSelection(dr, dc) {
 
 function _initKeyboard() {
   document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") return;
+
+    if (Game._soloMode && Game.active) {
+      if (e.key >= '1' && e.key <= '9') { Game._enterSoloValue(+e.key); e.preventDefault(); return; }
+      if (e.key === 'Backspace' || e.key === 'Delete') { Game._eraseSoloValue(); e.preventDefault(); return; }
+      if (e.key === 'n' || e.key === 'N') {
+        Game.notesMode = !Game.notesMode;
+        document.getElementById('solo-notes-btn').classList.toggle('active', Game.notesMode);
+        return;
+      }
+      if (e.key.startsWith('Arrow') && Game.selectedCell) {
+        const [r,c] = Game.selectedCell;
+        const dirs = {ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+        const [dr,dc] = dirs[e.key] || [0,0];
+        const nr = Math.max(0,Math.min(8,r+dr)), nc = Math.max(0,Math.min(8,c+dc));
+        Game._soloSelectCell(nr, nc);
+        e.preventDefault(); return;
+      }
+    }
+
     const active = document.querySelector(".view.active");
     if (!active || active.id !== "view-game") return;
-    if (e.target.tagName === "INPUT") return;
 
     if (e.key >= "1" && e.key <= "9") {
       _enterValue(parseInt(e.key));

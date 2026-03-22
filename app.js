@@ -9,10 +9,11 @@ const App = {
   currentView: null,
   currentRoom: null,    // { code, players, difficulty, lives, host_id, ... }
   myPlayerId: null,     // own player ID — works for guests too
-  _pendingQueueMode: null,   // "ranked" | "casual" — set during difficulty step
+  _pendingQueueMode: null,   // "ranked" | "casual" | "solo" — set during difficulty step
   _selectedDifficulty: "medium",
   _publicTab: "easy",        // currently viewed difficulty tab in public lobbies
   _lastRoomList: [],
+  _soloSettings: { difficulty: 'easy' },
 
   init() {
     Auth.init();
@@ -58,6 +59,20 @@ const App = {
       el.textContent = "Guest";
     }
   },
+
+  _startSolo(difficulty) {
+    this._soloSettings.difficulty = difficulty;
+    App.showView('solo');
+    // Show a subtle loading state on the board while waiting
+    const boardEl = document.getElementById('solo-board');
+    if (boardEl) boardEl.innerHTML = '<div class="solo-loading">Loading puzzle…</div>';
+    WS.send({ type: 'get_solo_puzzle', difficulty });
+  },
+
+  _showSoloDifficultyPicker() {
+    this._pendingQueueMode = 'solo';
+    _showDifficultyPicker('solo');
+  },
 };
 
 // ─── Navigation / Button Bindings ────────────────────────────────────────────
@@ -101,6 +116,10 @@ function _bindNavigation() {
   });
 
   // Lobby Browser — step 1: pick mode
+  document.getElementById("btn-solo").addEventListener("click", () => {
+    App._showSoloDifficultyPicker();
+  });
+
   document.getElementById("btn-quick-match").addEventListener("click", () => {
     if (Auth.isGuest) { showToast("Ranked requires an account.", "error"); return; }
     _showDifficultyPicker("ranked");
@@ -124,6 +143,10 @@ function _bindNavigation() {
     const mode = App._pendingQueueMode;
     const diff = App._selectedDifficulty;
     _hideDifficultyPicker();
+    if (mode === "solo") {
+      App._startSolo(diff);
+      return;
+    }
     WS.send({ type: "join_queue", mode, difficulty: diff });
   });
   document.getElementById("btn-cancel-diff").addEventListener("click", () => {
@@ -214,6 +237,25 @@ function _bindNavigation() {
       App._publicTab = btn.dataset.tab;
       _renderPublicRooms(App._lastRoomList || []);
     });
+  });
+
+  // Solo mode navigation
+  document.getElementById("btn-solo-back").addEventListener("click", () => {
+    Game.stopSolo();
+    App.showView("lobby-browser");
+  });
+
+  document.getElementById("btn-solo-again").addEventListener("click", () => {
+    App._startSolo(App._soloSettings.difficulty);
+  });
+
+  document.getElementById("btn-solo-done").addEventListener("click", () => {
+    Game.stopSolo();
+    App.showView("lobby-browser");
+  });
+
+  document.getElementById("btn-solo-timer-toggle").addEventListener("click", () => {
+    Game.setSoloTimerEnabled(!Game._soloTimerEnabled);
   });
 }
 
@@ -347,6 +389,16 @@ function _registerAppHandlers() {
   WS.on("profile", msg => {
     _renderProfile(msg.profile);
     App.showView("profile");
+  });
+
+  WS.on("solo_puzzle", msg => {
+    Game.startSolo(msg.puzzle, msg.solution, msg.given_cells, msg.difficulty, msg.puzzle_id);
+  });
+
+  WS.on("solo_result", msg => {
+    if (msg.new_best) {
+      document.getElementById("solo-complete-pb").classList.remove("hidden");
+    }
   });
 }
 
@@ -571,7 +623,9 @@ function _showDifficultyPicker(mode) {
   document.getElementById("browser-step-1").classList.add("hidden");
   document.getElementById("browser-step-2").classList.remove("hidden");
   const label = document.getElementById("difficulty-step-label");
-  label.textContent = mode === "ranked" ? "Ranked — select difficulty" : "Casual — select difficulty";
+  if (mode === "ranked") label.textContent = "Ranked — select difficulty";
+  else if (mode === "solo") label.textContent = "Solo — select difficulty";
+  else label.textContent = "Casual — select difficulty";
 }
 
 function _hideDifficultyPicker() {
