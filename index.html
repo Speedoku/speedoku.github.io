@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speedoku</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ─── Views ─────────────────────────────────────────────────────────── -->
+
+<!-- Home -->
+<div id="view-home" class="view active">
+  <div class="home-center">
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="8" height="8" rx="2" fill="#e8b648"/>
+        <rect x="11" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="22" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+      </svg>
+      <div class="logo-wordmark"><span class="logo-speed">Speed</span><span class="logo-oku">oku</span></div>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary btn-hero" id="btn-play-guest">Play Now</button>
+      <div class="home-divider"><span>have an account?</span></div>
+      <div class="home-auth-row">
+        <button class="btn btn-ghost" id="btn-sign-in">Sign In</button>
+        <button class="btn btn-ghost" id="btn-create-account">Create Account</button>
+      </div>
+    </div>
+    <button class="btn btn-link" id="btn-how-to-play">How to Play</button>
+  </div>
+</div>
+
+<!-- Auth -->
+<div id="view-auth" class="view">
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Sign In</button>
+      <button class="auth-tab" data-tab="register">Create Account</button>
+    </div>
+
+    <form id="form-login" class="auth-form">
+      <label>Email<input type="email" id="login-email" autocomplete="email" required /></label>
+      <label>Password<input type="password" id="login-password" autocomplete="current-password" required /></label>
+      <div class="form-error" id="login-error"></div>
+      <button type="submit" class="btn btn-primary full-width">Sign In</button>
+    </form>
+
+    <form id="form-register" class="auth-form hidden">
+      <label>Username<input type="text" id="reg-username" minlength="3" maxlength="20" required /></label>
+      <label>Email<input type="email" id="reg-email" autocomplete="email" required /></label>
+      <label>Password<input type="password" id="reg-password" minlength="8" required /></label>
+      <div class="form-error" id="reg-error"></div>
+      <button type="submit" class="btn btn-primary full-width">Create Account</button>
+    </form>
+
+    <button class="btn btn-link back-btn" id="auth-back">← Back</button>
+  </div>
+</div>
+
+<!-- Lobby Browser -->
+<div id="view-lobby-browser" class="view">
+  <header class="view-header">
+    <div class="logo-small">
+      <svg class="logo-mark-sm" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="8" height="8" rx="2" fill="#e8b648"/>
+        <rect x="11" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="22" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+      </svg>
+      Speedoku
+    </div>
+    <div class="header-actions">
+      <span id="header-username" class="header-user"></span>
+      <button class="btn btn-ghost btn-sm" id="btn-profile">Profile</button>
+      <button class="btn btn-ghost btn-sm" id="btn-logout">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="browser-body">
+
+    <!-- Play section: mode cards + difficulty + matchmaking -->
+    <div class="play-section">
+
+      <!-- Step 1: mode cards -->
+      <div id="browser-step-1" class="browser-step">
+        <div class="section-label">Quick Play</div>
+        <div class="mode-cards">
+          <button class="mode-card" id="btn-quick-match">
+            <div class="mode-card-title">Ranked</div>
+            <div class="mode-card-desc">Compete for ELO · matched by skill level</div>
+          </button>
+          <button class="mode-card" id="btn-quick-casual">
+            <div class="mode-card-title">Casual</div>
+            <div class="mode-card-desc">Play for fun · no ranking on the line</div>
+          </button>
+          <button class="mode-card" id="btn-create-room">
+            <div class="mode-card-title">Create Room</div>
+            <div class="mode-card-desc">Private lobby · 2–8 players · custom rules</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: difficulty picker (shown after clicking Ranked/Casual) -->
+      <div id="browser-step-2" class="browser-step hidden">
+        <div class="section-label" id="difficulty-step-label">Select difficulty</div>
+        <div class="diff-pick-row">
+          <button class="btn btn-ghost diff-pick" data-diff="easy">
+            <span class="diff-name">Easy</span>
+            <span class="diff-sub">~36 clues</span>
+          </button>
+          <button class="btn btn-ghost diff-pick active" data-diff="medium">
+            <span class="diff-name">Medium</span>
+            <span class="diff-sub">~28 clues</span>
+          </button>
+          <button class="btn btn-ghost diff-pick" data-diff="hard">
+            <span class="diff-name">Hard</span>
+            <span class="diff-sub">~22 clues</span>
+          </button>
+        </div>
+        <div class="diff-pick-actions">
+          <button class="btn btn-primary" id="btn-confirm-queue">Find Game</button>
+          <button class="btn btn-link" id="btn-cancel-diff">← Back</button>
+        </div>
+      </div>
+
+      <!-- Matchmaking status -->
+      <div class="matchmaking-status hidden" id="matchmaking-status">
+        <div class="mm-spinner"></div>
+        <span id="mm-label">Finding opponent…</span>
+        <button class="btn btn-link" id="btn-leave-queue">Cancel</button>
+      </div>
+
+    </div><!-- /play-section -->
+
+    <!-- Rooms section -->
+    <div class="rooms-section">
+
+      <!-- Public Lobbies -->
+      <div class="section-row">
+        <div class="section-title">Public Lobbies</div>
+      </div>
+      <div class="diff-tabs" id="public-diff-tabs">
+        <button class="diff-tab active" data-tab="easy">Easy</button>
+        <button class="diff-tab" data-tab="medium">Medium</button>
+        <button class="diff-tab" data-tab="hard">Hard</button>
+      </div>
+      <div class="public-rooms-grid" id="public-rooms-grid">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Join by code -->
+      <div class="join-room-row">
+        <input type="text" id="join-room-code" placeholder="Room code" maxlength="6" class="room-code-input" />
+        <button class="btn btn-ghost" id="btn-join-room-code">Join Room</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Room Lobby -->
+<div id="view-room-lobby" class="view">
+  <header class="view-header">
+    <div class="logo-small">
+      <svg class="logo-mark-sm" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="8" height="8" rx="2" fill="#e8b648"/>
+        <rect x="11" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="22" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+      </svg>
+      Speedoku
+    </div>
+    <button class="btn btn-link" id="btn-leave-room">← Leave Room</button>
+  </header>
+
+  <div class="room-lobby-body">
+    <div class="room-code-display">
+      <span class="room-code-heading">Room Code</span>
+      <span id="room-code-label" class="room-code-value mono" title="Click to copy" role="button" tabindex="0"></span>
+    </div>
+
+    <div class="room-controls" id="room-controls">
+      <div class="control-row">
+        <span class="control-label">Difficulty</span>
+        <div class="btn-group" id="difficulty-select">
+          <button class="btn btn-sm btn-ghost" data-diff="easy">Easy</button>
+          <button class="btn btn-sm btn-ghost active" data-diff="medium">Medium</button>
+          <button class="btn btn-sm btn-ghost" data-diff="hard">Hard</button>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Lives</span>
+        <div class="btn-group" id="lives-select">
+          <button class="btn btn-sm btn-ghost active" data-lives="0">Off</button>
+          <button class="btn btn-sm btn-ghost" data-lives="1">1</button>
+          <button class="btn btn-sm btn-ghost" data-lives="3">3</button>
+          <button class="btn btn-sm btn-ghost" data-lives="5">5</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-list" id="lobby-player-list"></div>
+
+    <!-- Public room countdown (hidden for private rooms) -->
+    <div class="lobby-countdown hidden" id="lobby-countdown">
+      <span class="lobby-countdown-label" id="lobby-countdown-label">Waiting for players…</span>
+      <span class="lobby-countdown-number hidden" id="lobby-countdown-number">60</span>
+    </div>
+
+    <div class="lobby-footer">
+      <button class="btn btn-primary" id="btn-ready">Ready</button>
+    </div>
+  </div>
+</div>
+
+<!-- Game -->
+<div id="view-game" class="view">
+  <div class="game-header">
+    <div class="timer-display" id="game-timer">0:00</div>
+    <div class="game-title">Speedoku</div>
+    <div class="lives-display" id="lives-display"></div>
+  </div>
+
+  <div class="game-body">
+    <div class="player-section">
+      <div class="board-label">You</div>
+      <div id="main-board" class="sudoku-board"></div>
+    </div>
+
+    <div class="opponents-section" id="opponents-section">
+      <!-- Opponent mini-boards injected here -->
+    </div>
+  </div>
+
+  <div class="numpad-row">
+    <div class="numpad" id="numpad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2</button>
+      <button class="num-btn" data-num="3">3</button>
+      <button class="num-btn" data-num="4">4</button>
+      <button class="num-btn" data-num="5">5</button>
+      <button class="num-btn" data-num="6">6</button>
+      <button class="num-btn" data-num="7">7</button>
+      <button class="num-btn" data-num="8">8</button>
+      <button class="num-btn" data-num="9">9</button>
+    </div>
+    <button class="num-btn erase-btn" id="btn-erase">⌫</button>
+    <button class="num-btn notes-btn" id="btn-notes" title="Toggle notes mode">✏</button>
+  </div>
+</div>
+
+<!-- Post-Game -->
+<div id="view-post-game" class="view">
+  <div class="post-game-card">
+    <div class="result-title" id="result-title">Game Over</div>
+    <div class="result-winner" id="result-winner"></div>
+    <div class="elo-delta" id="elo-delta"></div>
+    <div class="results-list" id="results-list"></div>
+    <div class="post-game-actions">
+      <button class="btn btn-primary" id="btn-play-again">Play Again</button>
+      <button class="btn btn-ghost" id="btn-back-lobby">Back to Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile -->
+<div id="view-profile" class="view">
+  <header class="view-header">
+    <div class="logo-small">
+      <svg class="logo-mark-sm" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <rect x="0"  y="0"  width="8" height="8" rx="2" fill="#e8b648"/>
+        <rect x="11" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="0"  width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+        <rect x="22" y="11" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="0"  y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="11" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.05)"/>
+        <rect x="22" y="22" width="8" height="8" rx="2" fill="rgba(240,236,227,0.13)"/>
+      </svg>
+      Speedoku
+    </div>
+    <button class="btn btn-link" id="btn-profile-back">← Back</button>
+  </header>
+  <div class="profile-body">
+    <div class="profile-header">
+      <div class="profile-username" id="profile-username"></div>
+      <div class="profile-elo">
+        <span id="profile-elo" class="elo-number"></span>
+        <span id="profile-tier" class="elo-tier"></span>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-block">
+        <div class="stat-value" id="stat-games">—</div>
+        <div class="stat-label">Games Played</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-wins">—</div>
+        <div class="stat-label">Wins</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-winrate">—</div>
+        <div class="stat-label">Win Rate</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-value" id="stat-avgtime">—</div>
+        <div class="stat-label">Avg Time</div>
+      </div>
+    </div>
+    <div class="recent-games-title">Recent Games</div>
+    <div id="recent-games-list" class="recent-games-list"></div>
+  </div>
+</div>
+
+<!-- How to Play Modal -->
+<div id="modal-how-to-play" class="modal-overlay hidden">
+  <div class="modal-card">
+    <button class="modal-close" id="btn-close-how-to-play">✕</button>
+    <h2>How to Play</h2>
+    <div class="how-to-content">
+      <p>Speedoku is competitive real-time Sudoku. You and your opponents solve the same puzzle simultaneously.</p>
+      <ul>
+        <li>Fill the 9×9 grid so every row, column, and 3×3 box contains each digit 1–9 exactly once.</li>
+        <li>Click a cell, then press a number key or use the number pad.</li>
+        <li>You can see your opponents' boards — not the numbers, but how fast they're filling up.</li>
+        <li>First to complete the grid wins in ranked mode.</li>
+        <li>In elimination mode, wrong answers cost lives. Lose all lives and you're out.</li>
+        <li>Toggle notes mode (✏) to pencil in candidate numbers.</li>
+      </ul>
+      <p class="how-to-keys"><strong>Keyboard:</strong> Arrow keys to navigate · 1–9 to enter · Backspace/Delete to erase · N to toggle notes</p>
+    </div>
+    <button class="btn btn-primary" id="btn-close-how-to-play-2">Got it</button>
+  </div>
+</div>
+
+<!-- Countdown overlay -->
+<div id="countdown-overlay" class="countdown-overlay hidden">
+  <div class="countdown-number" id="countdown-number">3</div>
+</div>
+
+<!-- Toast notifications -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ─── Scripts ──────────────────────────────────────────────────────── -->
+<script src="ws.js"></script>
+<script src="auth.js"></script>
+<script src="game.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

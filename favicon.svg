@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#13120d"/>
+  <!-- 3×3 grid of cells — top-left amber, diagonal mid-tone, rest dim -->
+  <rect x="4"  y="4"  width="6" height="6" rx="1.5" fill="#e8b648"/>
+  <rect x="13" y="4"  width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.13)"/>
+  <rect x="22" y="4"  width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.05)"/>
+  <rect x="4"  y="13" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.05)"/>
+  <rect x="13" y="13" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.13)"/>
+  <rect x="22" y="13" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.05)"/>
+  <rect x="4"  y="22" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.05)"/>
+  <rect x="13" y="22" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.05)"/>
+  <rect x="22" y="22" width="6" height="6" rx="1.5" fill="rgba(240,236,227,0.13)"/>
+</svg>
