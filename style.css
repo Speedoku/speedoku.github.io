@@ -206,7 +206,9 @@ html, body {
 .home-auth-row .btn { flex: 1; }
 
 /* ─── Auth ────────────────────────────────────────────────────────────────── */
-#view-auth {
+#view-auth,
+#view-forgot,
+#view-reset {
   align-items: center;
   justify-content: center;
   background: var(--bg);
